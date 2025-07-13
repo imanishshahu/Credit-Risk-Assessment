@@ -63,7 +63,8 @@ No frameworks or build tools — just one beautifully crafted HTML file!
 
 **Manish Shah**  
 📧 [shahamanish7@gmail.com](mailto:shahamanish7@gmail.com)  
-🌐 [Portfolio / GitHub / LinkedIn links can be added here if you'd like]
+🌐 [manishshahu.com.np](https://manishshahu.com.np)  
+🔗 [LinkedIn](https://www.linkedin.com/in/imanishshahu/)
 
 ---
 
