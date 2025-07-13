@@ -10,8 +10,6 @@
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- MathJax for beautiful formulas -->
-    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -326,22 +324,22 @@
                             <div>
                                 <h4 class="font-bold mb-2">Bayes' Theorem</h4>
                                 <p class="mb-2 text-sm">This is the foundation of the classifier. It tells us how to update our belief about a hypothesis (e.g., a person is 'Low Risk') given new evidence (their financial features).</p>
-                                <div class="bg-gray-50 p-4 rounded text-center text-lg overflow-x-auto border border-gray-200 font-serif">
-                                    $$P(\text{Class} | \text{Features}) = \frac{P(\text{Features} | \text{Class}) \times P(\text{Class})}{P(\text{Features})}$$
+                                <div class="bg-gray-50 p-4 rounded text-center text-sm overflow-x-auto border border-gray-200">
+                                    $P(\text{Class} | \text{Features}) = \frac{P(\text{Features} | \text{Class}) \times P(\text{Class})}{P(\text{Features})}$
                                 </div>
                             </div>
                              <div>
                                 <h4 class="font-bold mb-2">The 'Naive' Assumption</h4>
                                 <p class="mb-2 text-sm">This is the simplifying assumption that makes the algorithm fast. It assumes all features are independent of each other, given the class. This allows us to calculate the total likelihood by multiplying the individual likelihoods for each feature.</p>
-                                <div class="bg-gray-50 p-4 rounded text-center text-lg overflow-x-auto border border-gray-200 font-serif">
-                                    $$P(\text{Features} | \text{Class}) = \prod_{i=1}^{n} P(\text{Feature}_i | \text{Class})$$
+                                <div class="bg-gray-50 p-4 rounded text-center text-sm overflow-x-auto border border-gray-200">
+                                    $P(\text{Features} | \text{Class}) = \prod_{i=1}^{n} P(\text{Feature}_i | \text{Class})$
                                 </div>
                             </div>
                             <div>
                                 <h4 class="font-bold mb-2">Gaussian Probability Density Function (PDF)</h4>
                                 <p class="mb-2 text-sm">Since our features are continuous (like income), we can't use simple counts. We assume they follow a bell curve (a Gaussian distribution) for each class. This formula calculates the likelihood of observing a specific feature value, given the mean ($\mu$) and variance ($\sigma^2$) of that feature for a particular class.</p>
-                                <div class="bg-gray-50 p-4 rounded text-center text-lg overflow-x-auto border border-gray-200 font-serif">
-                                    $$P(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$$
+                                <div class="bg-gray-50 p-4 rounded text-center text-sm overflow-x-auto border border-gray-200">
+                                    $P(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$
                                 </div>
                             </div>
                         </div>
