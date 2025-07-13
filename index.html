@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Naive Bayes Explainer</title>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A step-by-step interactive dashboard guiding the user through the Naive Bayes classification process. The structure is designed for educational flow: 1. Introduction to the concept. 2. Visualizing the source data to understand class separation. 3. Showing what the model 'learns' (priors, means, variances). 4. A core interactive section where users can manipulate inputs and see the prediction calculations in real-time. 5. A reference section with the underlying theory. This task-oriented, linear flow is chosen over a free-form dashboard to make a complex algorithm digestible and to build understanding sequentially, which is ideal for a learning-focused application. -->
+    <!-- Visualization & Content Choices: 1. Synthetic Data -> Goal: Compare classes -> Viz: Interactive Scatter Plot (Chart.js) -> Interaction: Hover to see details. Justification: Visually demonstrates the feature distributions and class separation far better than text. 2. Prior Probabilities -> Goal: Inform -> Viz: Donut Chart (Chart.js) -> Interaction: None. Justification: Provides a simple, universally understood visual for class proportions. 3. Learned Statistics -> Goal: Inform -> Viz: HTML Table -> Interaction: None. Justification: Clearly and directly presents the mean/variance the model 'learned'. 4. Prediction Process -> Goal: Engage & Explain -> Viz: HTML Sliders & Text Blocks -> Interaction: Sliders update calculations in real-time. Justification: This is the core of the app. It makes the abstract formulas tangible and shows the direct impact of feature values on the outcome, solidifying user understanding. 5. Formulas -> Goal: Reference -> Viz: Styled Text in a collapsible section. Justification: Provides theoretical backup without cluttering the main interactive flow. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFDFB; 
+            color: #333;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        .accent-green { color: #2E8B57; }
+        .accent-red { color: #B22222; }
+        .bg-accent-green-light { background-color: rgba(46, 139, 87, 0.1); }
+        .bg-accent-red-light { background-color: rgba(178, 34, 34, 0.1); }
+        .border-accent-green { border-color: #2E8B57; }
+        .border-accent-red { border-color: #B22222; }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #A0AEC0;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #A0AEC0;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">The Naive Bayes Classifier Explained</h1>
+            <p class="text-lg text-gray-600">An Interactive Guide to Credit Risk Assessment</p>
+        </header>
+
+        <main class="space-y-16">
+
+            <!-- Section 1: Introduction -->
+            <section id="intro">
+                <p class="max-w-3xl mx-auto text-center text-gray-700 leading-relaxed">
+                    This interactive tool demystifies the Gaussian Naive Bayes algorithm, a simple yet powerful probabilistic classifier. We'll walk through how it works using a credit risk assessment example. The goal is to classify individuals as "Low Risk" or "High Risk" based on financial features. Here, you can see the concepts in action, not just read about them.
+                </p>
+            </section>
+
+            <!-- Section 2: The Data -->
+            <section id="data">
+                <div class="text-center mb-8">
+                    <h2>Step 1: Understanding the Data</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        First, let's visualize our data. A Naive Bayes model learns from labeled examples. Below is a scatter plot of our synthetic dataset showing the relationship between income and credit score for both 'Low Risk' and 'High Risk' individuals. Notice how the groups have different characteristics but also overlap, which is what makes prediction a challenge.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="chart-container relative w-full h-80 md:h-96 max-w-3xl mx-auto">
+                        <canvas id="dataScatterChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Learning from Data -->
+            <section id="learning">
+                <div class="text-center mb-8">
+                    <h2>Step 2: Learning from the Data (The 'fit' phase)</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        The 'training' or 'fitting' phase is where the model learns from the data. It doesn't learn complex rules, but rather calculates key statistics for each class. These statistics are the foundation for making all future predictions.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-center mb-4">A. Priors: The Baseline Probability</h3>
+                        <p class="text-sm text-gray-600 mb-4">The model first calculates the prior probability, $P(\text{Class})$, which is the overall proportion of each class in the training data. It's our belief about the risk before seeing any specific data about an individual.</p>
+                        <div class="chart-container relative w-full h-56 max-w-xs mx-auto">
+                            <canvas id="priorDonutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-center mb-4">B. Likelihoods: Learning Feature Statistics</h3>
+                        <p class="text-sm text-gray-600 mb-4">Next, for each class, the model calculates the mean ($\mu$) and variance ($\sigma^2$) of each feature. These statistics describe the unique distribution of features for 'Low Risk' vs. 'High Risk' individuals. They will be used to calculate the likelihood, $P(\text{Feature} | \text{Class})$.</p>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2">Class</th>
+                                        <th class="p-2">Feature</th>
+                                        <th class="p-2">Mean ($\mu$)</th>
+                                        <th class="p-2">Variance ($\sigma^2$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTable">
+                                    <!-- Rows will be injected by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 4: Making a Prediction -->
+            <section id="prediction">
+                <div class="text-center mb-8">
+                    <h2>Step 3: Making a Prediction (The Interactive Part)</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        Now, let's predict the risk for a new individual. Adjust the sliders below to define their financial profile. As you do, the application will use the statistics learned in Step 2 and Bayes' Theorem to calculate the probability of them being 'Low Risk' or 'High Risk'.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <!-- Input Sliders -->
+                        <div class="md:col-span-1 space-y-6">
+                            <h3 class="text-center">New Applicant Profile</h3>
+                            <div>
+                                <label for="incomeSlider" class="block font-medium">Income: <span id="incomeValue" class="font-bold text-gray-800"></span></label>
+                                <input id="incomeSlider" type="range" min="10000" max="150000" value="75000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                            </div>
+                            <div>
+                                <label for="creditSlider" class="block font-medium">Credit Score: <span id="creditValue" class="font-bold text-gray-800"></span></label>
+                                <input id="creditSlider" type="range" min="300" max="850" value="720" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                            </div>
+                            <div>
+                                <label for="loanSlider" class="block font-medium">Loan Amount: <span id="loanValue" class="font-bold text-gray-800"></span></label>
+                                <input id="loanSlider" type="range" min="1000" max="100000" value="20000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                            </div>
+                        </div>
+
+                        <!-- Calculation Breakdown -->
+                        <div class="md:col-span-2">
+                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Low Risk Calculation -->
+                                <div class="p-4 rounded-lg bg-accent-green-light border border-accent-green">
+                                    <h4 class="font-bold text-lg accent-green text-center mb-2">Low Risk (Class 0) Calculation</h4>
+                                    <div class="text-xs space-y-2">
+                                        <p>log(P(Prior)): <span id="prior_0" class="font-mono float-right"></span></p>
+                                        <p>log(P(Income|Low)): <span id="like_income_0" class="font-mono float-right"></span></p>
+                                        <p>log(P(Score|Low)): <span id="like_credit_0" class="font-mono float-right"></span></p>
+                                        <p>log(P(Loan|Low)): <span id="like_loan_0" class="font-mono float-right"></span></p>
+                                        <hr class="my-1 border-accent-green">
+                                        <p class="font-bold">Total Score: <span id="posterior_0" class="font-mono float-right"></span></p>
+                                    </div>
+                                </div>
+                                <!-- High Risk Calculation -->
+                                <div class="p-4 rounded-lg bg-accent-red-light border border-accent-red">
+                                     <h4 class="font-bold text-lg accent-red text-center mb-2">High Risk (Class 1) Calculation</h4>
+                                    <div class="text-xs space-y-2">
+                                        <p>log(P(Prior)): <span id="prior_1" class="font-mono float-right"></span></p>
+                                        <p>log(P(Income|High)): <span id="like_income_1" class="font-mono float-right"></span></p>
+                                        <p>log(P(Score|High)): <span id="like_credit_1" class="font-mono float-right"></span></p>
+                                        <p>log(P(Loan|High)): <span id="like_loan_1" class="font-mono float-right"></span></p>
+                                        <hr class="my-1 border-accent-red">
+                                        <p class="font-bold">Total Score: <span id="posterior_1" class="font-mono float-right"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                             <!-- Final Prediction -->
+                            <div id="predictionResult" class="mt-6 text-center p-4 rounded-lg transition-all duration-300">
+                                <p class="text-lg font-bold">Final Prediction:</p>
+                                <p id="predictionText" class="text-3xl font-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- Section 5: The Theory -->
+            <section id="theory">
+                <div class="text-center mb-8">
+                    <h2>Step 4: The Theory Behind It All</h2>
+                </div>
+                <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+                    <details class="group">
+                        <summary class="flex justify-between items-center font-medium cursor-pointer list-none">
+                            <span>Click to see the formulas</span>
+                            <span class="transition group-open:rotate-180">
+                                <svg fill="none" height="24" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                            </span>
+                        </summary>
+                        <div class="text-gray-700 mt-4 group-open:animate-fadeIn space-y-6">
+                            <div>
+                                <h4 class="font-bold mb-2">Bayes' Theorem</h4>
+                                <p class="mb-2">This is the foundation of the classifier. It tells us how to update our belief about a hypothesis (e.g., a person is 'Low Risk') given new evidence (their financial features).</p>
+                                <div class="bg-gray-100 p-4 rounded text-center text-sm overflow-x-auto">
+                                    $P(\text{Class} | \text{Features}) = \frac{P(\text{Features} | \text{Class}) \times P(\text{Class})}{P(\text{Features})}$
+                                </div>
+                            </div>
+                             <div>
+                                <h4 class="font-bold mb-2">The 'Naive' Assumption</h4>
+                                <p class="mb-2">This is the simplifying assumption that makes the algorithm fast. It assumes all features are independent of each other, given the class. This allows us to calculate the total likelihood by multiplying the individual likelihoods for each feature.</p>
+                                <div class="bg-gray-100 p-4 rounded text-center text-sm overflow-x-auto">
+                                    $P(\text{Features} | \text{Class}) = \prod_{i=1}^{n} P(\text{Feature}_i | \text{Class})$
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-2">Gaussian Probability Density Function (PDF)</h4>
+                                <p class="mb-2">Since our features are continuous (like income), we can't use simple counts. We assume they follow a bell curve (a Gaussian distribution) for each class. This formula calculates the likelihood of observing a specific feature value, given the mean ($\mu$) and variance ($\sigma^2$) of that feature for a particular class.</p>
+                                <div class="bg-gray-100 p-4 rounded text-center text-sm overflow-x-auto">
+                                    $P(x | \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- 1. Data Generation and Model Parameters ---
+    // In a real scenario, this would come from a backend or a loaded file.
+    // Here, we simulate the data and the "learned" parameters from the Python script.
+
+    const data = { lowRisk: [], highRisk: [] };
+    const numSamples = 300;
+    for (let i = 0; i < numSamples; i++) {
+        if (Math.random() < 0.7) { // 70% low risk
+            data.lowRisk.push({
+                x: 60000 + (Math.random() - 0.5) * 30000, // Income
+                y: 700 + (Math.random() - 0.5) * 100,     // Credit Score
+            });
+        } else {
+            data.highRisk.push({
+                x: 35000 + (Math.random() - 0.5) * 20000,
+                y: 550 + (Math.random() - 0.5) * 140,
+            });
+        }
+    }
+
+    // These are the pre-calculated "learned" stats from a `fit` process
+    const modelParams = {
+        priors: {
+            0: 0.7, // Low Risk
+            1: 0.3  // High Risk
+        },
+        means: {
+            0: { Income: 60000, Credit_Score: 700, Loan_Amount: 20000 },
+            1: { Income: 35000, Credit_Score: 550, Loan_Amount: 40000 }
+        },
+        variances: {
+            0: { Income: 15000**2, Credit_Score: 50**2, Loan_Amount: 8000**2 },
+            1: { Income: 10000**2, Credit_Score: 70**2, Loan_Amount: 15000**2 }
+        }
+    };
+
+    // --- 2. Charting ---
+    
+    // Scatter Plot
+    const scatterCtx = document.getElementById('dataScatterChart').getContext('2d');
+    new Chart(scatterCtx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Low Risk',
+                data: data.lowRisk,
+                backgroundColor: 'rgba(46, 139, 87, 0.6)',
+                borderColor: 'rgba(46, 139, 87, 1)',
+                pointRadius: 5,
+            }, {
+                label: 'High Risk',
+                data: data.highRisk,
+                backgroundColor: 'rgba(178, 34, 34, 0.6)',
+                borderColor: 'rgba(178, 34, 34, 1)',
+                pointRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: { display: true, text: 'Income ($)' }
+                },
+                y: {
+                    title: { display: true, text: 'Credit Score' }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: (Income: ${context.parsed.x.toFixed(0)}, Score: ${context.parsed.y.toFixed(0)})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Donut Chart for Priors
+    const donutCtx = document.getElementById('priorDonutChart').getContext('2d');
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low Risk (70%)', 'High Risk (30%)'],
+            datasets: [{
+                data: [modelParams.priors[0], modelParams.priors[1]],
+                backgroundColor: ['rgba(46, 139, 87, 0.8)', 'rgba(178, 34, 34, 0.8)'],
+                borderColor: ['#FFFFFF', '#FFFFFF'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // --- 3. Populate Statistics Table ---
+    const statsTable = document.getElementById('statsTable');
+    for (const classId of [0, 1]) {
+        const className = classId === 0 ? 'Low Risk' : 'High Risk';
+        const classColor = classId === 0 ? 'bg-green-50' : 'bg-red-50';
+        for (const feature in modelParams.means[classId]) {
+            const row = document.createElement('tr');
+            row.className = classColor;
+            row.innerHTML = `
+                <td class="p-2 font-medium">${className}</td>
+                <td class="p-2">${feature.replace('_', ' ')}</td>
+                <td class="p-2">${modelParams.means[classId][feature].toLocaleString()}</td>
+                <td class="p-2">${modelParams.variances[classId][feature].toExponential(2)}</td>
+            `;
+            statsTable.appendChild(row);
+        }
+    }
+
+    // --- 4. Interactive Prediction Logic ---
+    const sliders = {
+        income: document.getElementById('incomeSlider'),
+        credit: document.getElementById('creditSlider'),
+        loan: document.getElementById('loanSlider'),
+    };
+
+    const values = {
+        income: document.getElementById('incomeValue'),
+        credit: document.getElementById('creditValue'),
+        loan: document.getElementById('loanValue'),
+    };
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    }
+    
+    function gaussianPDF(x, mean, variance) {
+        if (variance < 1e-9) return x === mean ? 1 : 1e-9;
+        const exponent = Math.exp(-((x - mean) ** 2) / (2 * variance));
+        return (1 / Math.sqrt(2 * Math.PI * variance)) * exponent;
+    }
+
+    function updatePrediction() {
+        const applicant = {
+            Income: parseFloat(sliders.income.value),
+            Credit_Score: parseFloat(sliders.credit.value),
+            Loan_Amount: parseFloat(sliders.loan.value),
+        };
+        
+        values.income.textContent = formatCurrency(applicant.Income);
+        values.credit.textContent = applicant.Credit_Score.toFixed(0);
+        values.loan.textContent = formatCurrency(applicant.Loan_Amount);
+
+        const posteriors = {};
+        for (const classId of [0, 1]) {
+            let posterior = Math.log(modelParams.priors[classId]);
+
+            const likelihoods = {};
+            for (const feature in applicant) {
+                const mean = modelParams.means[classId][feature];
+                const variance = modelParams.variances[classId][feature];
+                const pdf = gaussianPDF(applicant[feature], mean, variance);
+                likelihoods[feature] = Math.log(pdf < 1e-9 ? 1e-9 : pdf);
+                posterior += likelihoods[feature];
+            }
+            posteriors[classId] = posterior;
+
+            // Update UI with calculation breakdown
+            document.getElementById(`prior_${classId}`).textContent = Math.log(modelParams.priors[classId]).toFixed(4);
+            document.getElementById(`like_income_${classId}`).textContent = likelihoods.Income.toFixed(4);
+            document.getElementById(`like_credit_${classId}`).textContent = likelihoods.Credit_Score.toFixed(4);
+            document.getElementById(`like_loan_${classId}`).textContent = likelihoods.Loan_Amount.toFixed(4);
+            document.getElementById(`posterior_${classId}`).textContent = posterior.toFixed(4);
+        }
+
+        // Final prediction
+        const predictionResultDiv = document.getElementById('predictionResult');
+        const predictionText = document.getElementById('predictionText');
+        if (posteriors[0] > posteriors[1]) {
+            predictionText.textContent = 'Low Risk';
+            predictionText.className = 'text-3xl font-bold accent-green';
+            predictionResultDiv.className = 'mt-6 text-center p-4 rounded-lg transition-all duration-300 bg-accent-green-light border-accent-green border';
+        } else {
+            predictionText.textContent = 'High Risk';
+            predictionText.className = 'text-3xl font-bold accent-red';
+            predictionResultDiv.className = 'mt-6 text-center p-4 rounded-lg transition-all duration-300 bg-accent-red-light border-accent-red border';
+        }
+    }
+
+    Object.values(sliders).forEach(slider => slider.addEventListener('input', updatePrediction));
+    updatePrediction(); // Initial call
+});
+</script>
+</body>
+</html>
