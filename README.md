@@ -1,4 +1,4 @@
-# 🧠 Credit Risk Assessment — Naive Bayes Classifier Explained
+# 🧠 Credit Risk Assessment — Naive Bayes Classifier 
 
 🔗 **Live Demo:** [credit-risk-assessment-theta.vercel.app](https://credit-risk-assessment-theta.vercel.app)
 
